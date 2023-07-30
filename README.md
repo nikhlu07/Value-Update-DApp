@@ -1,5 +1,5 @@
 # Value-Update-DApp
-This is simple D-app with only two function.
+This is a simple D-app with two functions.
 
 # Description: 
 This project contains a simple Decentralized Application (DApp) that allows users to update and double a numeric value on the Ethereum blockchain.
@@ -52,4 +52,5 @@ To double the current numeric value, click the "Double Value" button.
 
 # Authors
 Nikhil Sharma
+
 Email: nikhhils07@gmail.com
