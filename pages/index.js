@@ -1,16 +1,15 @@
-import {useState, useEffect} from "react";
-import {ethers} from "ethers";
-import atm_abi from "../artifacts/contracts/Assessment.sol/Assessment.json";
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
+import assessment_abi from "../artifacts/contracts/Assessment.sol/Assessment.json";
 
 export default function HomePage() {
   const [ethWallet, setEthWallet] = useState(undefined);
   const [account, setAccount] = useState(undefined);
-  const [atm, setATM] = useState(undefined);
-  const [balance, setBalance] = useState(undefined);
+  const [assessment, setAssessment] = useState(undefined);
+  const [value, setValue] = useState(undefined);
 
-  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  const atmABI = atm_abi.abi;
-
+  const contractAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
+  const assessmentABI = assessment_abi.abi;
   const getWallet = async() => {
     if (window.ethereum) {
       setEthWallet(window.ethereum);
@@ -42,76 +41,94 @@ export default function HomePage() {
     handleAccount(accounts);
     
     // once wallet is set we can get a reference to our deployed contract
-    getATMContract();
+     getAssessmentContract();
   };
 
-  const getATMContract = () => {
+  const getAssessmentContract = () => {
+    // if (!ethWallet || !ethWallet.provider) {
+    //   console.error("Error getting Assessment contract: Ethereum provider is missing.");
+    //   return;
+    // }
+
     const provider = new ethers.providers.Web3Provider(ethWallet);
     const signer = provider.getSigner();
-    const atmContract = new ethers.Contract(contractAddress, atmABI, signer);
- 
-    setATM(atmContract);
+    const assessmentContract = new ethers.Contract(contractAddress, assessmentABI, signer);
+
+    setAssessment(assessmentContract);
   }
 
-  const getBalance = async() => {
-    if (atm) {
-      setBalance((await atm.getBalance()).toNumber());
+  const getValue = async () => {
+    if (!assessment) return;
+    try {
+      const currentValue = await assessment.value();
+      setValue(currentValue.toNumber());
+    } catch (error) {
+      console.error("Error getting value:", error);
     }
   }
 
-  const deposit = async() => {
-    if (atm) {
-      let tx = await atm.deposit(1);
-      await tx.wait()
-      getBalance();
+  const updateValue = async (newValue) => {
+    if (!assessment) return;
+    try {
+      const tx = await assessment.updateValue(newValue);
+      await tx.wait();
+      getValue();
+    } catch (error) {
+      console.error("Error updating value:", error);
     }
   }
 
-  const withdraw = async() => {
-    if (atm) {
-      let tx = await atm.withdraw(1);
-      await tx.wait()
-      getBalance();
+  const doubleValue = async () => {
+    if (!assessment) return;
+    try {
+      const tx = await assessment.doubleValue(); // Update the function name here
+      await tx.wait();
+      getValue();
+    } catch (error) {
+      console.error("Error doubling value:", error);
     }
-  }
+  };
+  
 
   const initUser = () => {
-    // Check to see if user has Metamask
     if (!ethWallet) {
-      return <p>Please install Metamask in order to use this ATM.</p>
+      return <p>Please install MetaMask to use this app.</p>;
     }
 
-    // Check to see if user is connected. If not, connect to their account
     if (!account) {
-      return <button onClick={connectAccount}>Please connect your Metamask wallet</button>
+      return <button onClick={connectAccount}>Please connect your MetaMask wallet</button>;
     }
 
-    if (balance == undefined) {
-      getBalance();
+    if (value === undefined) {
+      getValue();
     }
 
     return (
       <div>
         <p>Your Account: {account}</p>
-        <p>Your Balance: {balance}</p>
-        <button onClick={deposit}>Deposit 1 ETH</button>
-        <button onClick={withdraw}>Withdraw 1 ETH</button>
+        <p>Current Value: {value}</p>
+        <button onClick={() => updateValue(15)}>Update Value to 15</button>
+        <button onClick={doubleValue}>Double Value</button>
       </div>
-    )
-  }
+    );
+  };
 
-  useEffect(() => {getWallet();}, []);
+  useEffect(() => {
+    getWallet();
+  }, []);
 
   return (
     <main className="container">
-      <header><h1>Welcome to the Metacrafters ATM!</h1></header>
+      <header>
+        <h1>Welcome here!</h1>
+        <h1>By Nikhil</h1>
+      </header>
       {initUser()}
       <style jsx>{`
         .container {
-          text-align: center
+          text-align: center;
         }
-      `}
-      </style>
+      `}</style>
     </main>
-  )
+  );
 }
